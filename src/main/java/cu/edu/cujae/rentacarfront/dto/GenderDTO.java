@@ -1,5 +1,6 @@
 package cu.edu.cujae.rentacarfront.dto;
 
+import cu.edu.cujae.rentacarfront.utils.NamedEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class GenderDTO {
+public class GenderDTO implements NamedEntity {
     private Integer id;
     private String name;
 }
