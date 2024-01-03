@@ -1,11 +1,11 @@
 package cu.edu.cujae.rentacarfront.views;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.grid.Grid;
@@ -14,13 +14,16 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.theme.lumo.LumoIcon;
+import cu.edu.cujae.rentacarfront.dto.TouristDTO;
+import cu.edu.cujae.rentacarfront.dto.save.TouristSaveDTO;
 import cu.edu.cujae.rentacarfront.services.BaseService;
 import cu.edu.cujae.rentacarfront.utils.AggregateService;
 import cu.edu.cujae.rentacarfront.utils.NamedEntity;
+
+import java.util.List;
 
 public abstract class EntityView<T> extends VerticalLayout {
     // Constantes
@@ -35,12 +38,14 @@ public abstract class EntityView<T> extends VerticalLayout {
     protected SplitLayout splitLayout;
     protected final Grid<T> grid = new Grid<>();
     protected Binder<T> binder = new Binder<>();
-    protected NumberField idField;
+    protected TextField searchField;
     protected Button searchButton;
     protected Button addButton;
     protected Button deleteButton;
 
+    // Variables
     protected final AggregateService aggregateService;
+    protected T selectedItem;
 
     public EntityView(AggregateService aggregateService) {
         this.aggregateService = aggregateService;
@@ -119,32 +124,33 @@ public abstract class EntityView<T> extends VerticalLayout {
     }
 
     private void initSearchComponents(Div wrapper) {
-        idField = new NumberField();
-        idField.setPlaceholder("Identificador");
-        searchButton = new Button("Buscar", click -> searchById());
-        HorizontalLayout searchLayout = new HorizontalLayout(idField, searchButton);
+        searchField = new TextField();
+        searchField.setPlaceholder(getTranslation("placeholder.id"));
+        searchButton = new Button(getTranslation("button.search"), click -> onSearchButtonClick());
+        HorizontalLayout searchLayout = new HorizontalLayout(searchField, searchButton);
         wrapper.add(searchLayout);
     }
 
-    protected abstract void searchById();
+    protected abstract void onSearchButtonClick();
 
     protected abstract void createEditorLayout(SplitLayout splitLayout);
 
     private void initButtons() {
-        addButton = new Button("Agregar");
-        addButton.addClickListener(click -> onAddButtonClick());
-        deleteButton = new Button("Eliminar");
-        deleteButton.addClickListener(click -> onDeleteButtonClick());
+        addButton = new Button(getTranslation("button.add"));
+        deleteButton = new Button(getTranslation("button.delete"));
     }
 
     protected abstract void onAddButtonClick();
 
     protected abstract void onDeleteButtonClick();
+    protected abstract void onUpdateButtonClick();
 
     protected void createButtEditorLayout(Div editorLayout){
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.add(addButton, deleteButton);
         editorLayout.add(buttonLayout);
+        addButton.addClickListener(click -> onAddButtonClick());
+        deleteButton.addClickListener(click -> onDeleteButtonClick());
     }
     protected <U extends NamedEntity> ComboBox<U> createComboBox(String label, BaseService<U, ?> service) {
         ComboBox<U> comboBox = new ComboBox<>(label);
@@ -152,6 +158,14 @@ public abstract class EntityView<T> extends VerticalLayout {
         comboBox.setItemLabelGenerator(U::getName);
         comboBox.setAllowCustomValue(false);
         return comboBox;
+    }
+    protected void showNoSelectionNotification() {
+        Notification notification = new Notification("No se seleccionó ningún elemento", 500, Notification.Position.TOP_CENTER);
+        notification.open();
+    }
+    protected void showInvalidFieldsNotification() {
+        Notification notification = new Notification("Campos inválidos", 500, Notification.Position.TOP_CENTER);
+        notification.open();
     }
     protected TextField createTextField(String label) {
         return new TextField(label);
@@ -164,4 +178,9 @@ public abstract class EntityView<T> extends VerticalLayout {
     protected EmailField createEmailField(String label) {
         return new EmailField(label);
     }
+    protected abstract void configureUI();
+    protected abstract void updateGrid(List<T> elements);
+    protected abstract void updateGrid(T element);
+    protected abstract void refreshGrid();
+    protected abstract void validateBinder();
 }
