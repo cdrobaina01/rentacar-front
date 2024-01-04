@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -17,8 +18,6 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.theme.lumo.LumoIcon;
-import cu.edu.cujae.rentacarfront.dto.TouristDTO;
-import cu.edu.cujae.rentacarfront.dto.save.TouristSaveDTO;
 import cu.edu.cujae.rentacarfront.services.BaseService;
 import cu.edu.cujae.rentacarfront.utils.AggregateService;
 import cu.edu.cujae.rentacarfront.utils.NamedEntity;
@@ -92,9 +91,6 @@ public abstract class EntityView<T> extends VerticalLayout {
         splitLayout.setSplitterPosition(GRID_SIZE);
         appLayout.setContent(splitLayout);
     }
-
-    protected abstract void configureGrid();
-
     private void initNavigationBar() {
         navigationBar = new Div();
         navigationBar.setText("Aquí va la barra de navegación");
@@ -130,11 +126,33 @@ public abstract class EntityView<T> extends VerticalLayout {
         HorizontalLayout searchLayout = new HorizontalLayout(searchField, searchButton);
         wrapper.add(searchLayout);
     }
-
+    protected void configureGridListenner() {
+        grid.asSingleSelect().addValueChangeListener(event -> {
+            selectedItem = event.getValue();
+            if (selectedItem != null) {
+                binder.setBean(selectedItem);  // Establece el bean del binder
+                updateForm();
+                setUpdateButton();
+            } else {
+                binder.setBean(null);  // Limpia el bean del binder
+                cleanForm();
+                setAddButton();
+            }
+        });
+    }
+    protected void configureGrid() {
+        setDataGrid();
+        configureGridListenner();
+    }
+    protected void setUpdateButton() {
+        addButton.setText(getTranslation("button.update"));
+        addButton.addClickListener(click -> onUpdateButtonClick());
+    }
+    protected void setAddButton() {
+        addButton.setText(getTranslation("button.add"));
+        addButton.addClickListener(click -> onAddButtonClick());
+    }
     protected abstract void onSearchButtonClick();
-
-    protected abstract void createEditorLayout(SplitLayout splitLayout);
-
     private void initButtons() {
         addButton = new Button(getTranslation("button.add"));
         deleteButton = new Button(getTranslation("button.delete"));
@@ -174,13 +192,44 @@ public abstract class EntityView<T> extends VerticalLayout {
     protected IntegerField createIntegerField(String label) {
         return new IntegerField(label);
     }
-
     protected EmailField createEmailField(String label) {
         return new EmailField(label);
     }
-    protected abstract void configureUI();
-    protected abstract void updateGrid(List<T> elements);
-    protected abstract void updateGrid(T element);
+    protected void updateGrid(List<T> elements) {
+        grid.setItems(elements);
+    }
+    protected void updateGrid(T element) {
+        grid.setItems(element);
+    }
+    protected void configureUI() {
+        createGridLayout(this.splitLayout);
+        createEditorLayout(this.splitLayout);
+        validateBinder();
+        refreshGrid();
+    }
+    protected void createEditorLayout(SplitLayout splitLayout) {
+        Div editorLayoutDiv = createEditorLayoutDiv();
+        FormLayout formLayout = createFormLayout();
+        editorLayoutDiv.add(formLayout);
+        createButtEditorLayout(editorLayoutDiv);
+        splitLayout.addToSecondary(editorLayoutDiv);
+    }
+    protected Div createEditorLayoutDiv() {
+        Div editorLayoutDiv = new Div();
+        editorLayoutDiv.setClassName("editor-layout");
+        Div editorDiv = new Div();
+        editorDiv.setClassName("editor");
+        editorLayoutDiv.add(editorDiv);
+        return editorLayoutDiv;
+    }
+    protected abstract FormLayout createFormLayout();
+
+    protected abstract void setDataGrid();
+
+    protected abstract void cleanForm();
+
+    protected abstract void updateForm();
+
     protected abstract void refreshGrid();
     protected abstract void validateBinder();
 }

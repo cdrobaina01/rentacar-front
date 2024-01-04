@@ -1,5 +1,6 @@
 package cu.edu.cujae.rentacarfront.views;
 
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import cu.edu.cujae.rentacarfront.dto.DriverDTO;
 import cu.edu.cujae.rentacarfront.utils.AggregateService;
@@ -23,6 +24,26 @@ public class DriverView extends EntityView<DriverDTO> {
 
     @Override
     protected void createEditorLayout(SplitLayout splitLayout) {
+
+    }
+
+    @Override
+    protected FormLayout createFormLayout() {
+        return null;
+    }
+
+    @Override
+    protected void setDataGrid() {
+
+    }
+
+    @Override
+    protected void cleanForm() {
+
+    }
+
+    @Override
+    protected void updateForm() {
 
     }
 

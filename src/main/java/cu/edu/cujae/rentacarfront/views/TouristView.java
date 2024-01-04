@@ -3,9 +3,7 @@ package cu.edu.cujae.rentacarfront.views;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -23,6 +21,8 @@ import cu.edu.cujae.rentacarfront.services.CountryService;
 import cu.edu.cujae.rentacarfront.services.GenderService;
 import cu.edu.cujae.rentacarfront.services.TouristService;
 import cu.edu.cujae.rentacarfront.utils.AggregateService;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,13 +48,8 @@ public class TouristView extends EntityView<TouristDTO> {
         this.binder = new Binder<>(TouristDTO.class);
         this.selectedItem = new TouristDTO();
         configureUI();
+        binder.bindInstanceFields(this);
     }
-    @Override
-    protected void configureGrid() {
-        setDataGrid();
-        configureGridListenner();
-    }
-
     @Override
     protected void onSearchButtonClick() {
         List<TouristDTO> result = touristService.getAll();
@@ -73,7 +68,8 @@ public class TouristView extends EntityView<TouristDTO> {
             updateGrid(auxiliar);
         }
     }
-    private void setDataGrid() {
+    @Override
+    protected void setDataGrid() {
         grid.addColumn(TouristDTO::getName)
                 .setHeader(getTranslation("tourist.name"))
                 .setSortable(true);
@@ -97,31 +93,8 @@ public class TouristView extends EntityView<TouristDTO> {
                 .setSortable(true);
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
     }
-
-    private void configureGridListenner() {
-        grid.asSingleSelect().addValueChangeListener(event -> {
-            selectedItem = event.getValue();
-            if (selectedItem != null) {
-                updateForm();
-                setUpdateButton();
-            } else {
-                cleanForm();
-                setAddButton();
-            }
-        });
-    }
-
-    private void setUpdateButton() {
-        addButton.setText(getTranslation("button.update"));
-        addButton.addClickListener(click -> onUpdateButtonClick());
-    }
-
-    private void setAddButton() {
-        addButton.setText(getTranslation("button.add"));
-        addButton.addClickListener(click -> onAddButtonClick());
-    }
-
-    private void cleanForm() {
+    @Override
+    protected void cleanForm() {
         // Si no hay turista seleccionado, vacía los campos y desbloquea el campo del pasaporte
         name.clear();
         passport.clear();
@@ -133,9 +106,13 @@ public class TouristView extends EntityView<TouristDTO> {
 
         // Desbloquea el campo del pasaporte
         passport.setReadOnly(false);
-    }
 
-    private void updateForm() {
+        // Limpia la selección actual
+        selectedItem = null;
+        binder.setBean(null);
+    }
+    @Override
+    protected void updateForm() {
         // Llena los campos con los datos del turista seleccionado
         name.setValue(selectedItem.getName());
         passport.setValue(selectedItem.getPassport());
@@ -147,16 +124,6 @@ public class TouristView extends EntityView<TouristDTO> {
         // Bloquea el campo del pasaporte
         passport.setReadOnly(true);
     }
-    @Override
-    protected void updateGrid(List<TouristDTO> elements) {
-        grid.setItems(elements);
-    }
-
-    @Override
-    protected void updateGrid(TouristDTO element) {
-        grid.setItems(element);
-    }
-
     @Override
     protected void refreshGrid() {
         List<TouristDTO> all = touristService.getAll();
@@ -174,7 +141,7 @@ public class TouristView extends EntityView<TouristDTO> {
         // Valida el campo 'passport' para que tenga exactamente 9 caracteres
         binder.forField(passport)
                 .withValidator(new StringLengthValidator(
-                        "El pasaporte debe tener entre 6 y 9 caracteres", 6, 12))
+                        "El pasaporte debe tener entre 6 y 12 caracteres", 6, 12))
                 .bind(TouristDTO::getPassport, TouristDTO::setPassport);
 
         // Valida el campo 'email' para que sea una dirección de correo electrónico válida
@@ -185,30 +152,30 @@ public class TouristView extends EntityView<TouristDTO> {
 
         // Valida el campo 'phone' para que sólo contenga dígitos
         binder.forField(phone)
-                .withValidator(phoneNumber -> phoneNumber.matches("^(\\+\\d{1,2}\\s)?\\(?\\d{3}\\)?[\\s.-]\\d{3}[\\s.-]\\d{4}$"),
-                        "El número de teléfono debe contener sólo dígitos")
+                .withValidator(phoneNumber -> phoneNumber.matches("^[-.()\\d]{6,20}$"),
+                        "El número de teléfono debe tener entre 6 y 12 caracteres y sólo puede contener números, '-', '.', y '()'")
                 .bind(TouristDTO::getPhone, TouristDTO::setPhone);
-    }
+        // Validación para el campo 'gender'
+        binder.forField(gender)
+                .withValidator(genderValue -> genderValue != null,
+                        "Debe seleccionar un género")
+                .bind(TouristDTO::getGender, TouristDTO::setGender);
 
+        // Validación para el campo 'country'
+        binder.forField(country)
+                .withValidator(countryValue -> countryValue != null,
+                        "Debe seleccionar un país")
+                .bind(TouristDTO::getCountry, TouristDTO::setCountry);
+
+        // Validación para el campo 'age'
+        binder.forField(age)
+                .withValidator(ageValue -> ageValue != null && ageValue >= 18 && ageValue <= 150,
+                        "Debe escribir una edad mayor de 18 y menor que 150")
+                .bind(TouristDTO::getAge, TouristDTO::setAge);
+
+    }
     @Override
-    public void createEditorLayout(SplitLayout splitLayout) {
-        Div editorLayoutDiv = createEditorLayoutDiv();
-        FormLayout formLayout = createFormLayout();
-        editorLayoutDiv.add(formLayout);
-        createButtEditorLayout(editorLayoutDiv);
-        splitLayout.addToSecondary(editorLayoutDiv);
-    }
-
-    private Div createEditorLayoutDiv() {
-        Div editorLayoutDiv = new Div();
-        editorLayoutDiv.setClassName("editor-layout");
-        Div editorDiv = new Div();
-        editorDiv.setClassName("editor");
-        editorLayoutDiv.add(editorDiv);
-        return editorLayoutDiv;
-    }
-
-    private FormLayout createFormLayout() {
+    protected FormLayout createFormLayout() {
         FormLayout formLayout = new FormLayout();
         name = createTextField("Nombre");
         passport = createTextField("Pasaporte");
@@ -220,6 +187,60 @@ public class TouristView extends EntityView<TouristDTO> {
         formLayout.add(name, passport, email, phone, age, country, gender);
         return formLayout;
     }
+    @Override
+    protected void onAddButtonClick() {
+        TouristDTO dto = new TouristDTO();
+        TouristSaveDTO save = new TouristSaveDTO();
+        if (binder.isValid()) {
+            try {
+                binder.writeBean(dto);
+                fillSaveDTO(dto, save);
+                touristService.create(save);
+                binder.setBean(null);
+                cleanForm();
+                refreshGrid();
+            } catch (ValidationException e) {
+                showInvalidFieldsNotification();
+            }
+        }
+        else {
+            // Muestra una única notificación de error
+            Notification notification = new Notification(
+                    "Tienes campos inválidos", 5000, Notification.Position.MIDDLE);
+            notification.open();
+        }
+    }
+
+    @Override
+    protected void onUpdateButtonClick() {
+        TouristDTO dto = binder.getBean();
+        System.out.println("Binder antes de la actualización: " + binder.getBean());
+        System.out.println("dto antes de la actualización: " + dto);
+        if (binder.isValid()) {
+            if (dto != null) {
+                try {
+                    binder.writeBean(dto);
+                    System.out.println("Binder después de la actualización: " + binder.getBean());
+                    TouristSaveDTO save = new TouristSaveDTO();
+                    fillSaveDTO(dto, save);
+                    touristService.update(dto.getPassport(),save);
+                    binder.setBean(null);
+                    cleanForm();
+                    refreshGrid();
+                } catch (ValidationException e) {
+                    showInvalidFieldsNotification();
+                }
+            } else {
+                showNoSelectionNotification();
+            }
+        }
+        else {
+            // Muestra una única notificación de error
+            Notification notification = new Notification(
+                    "Tienes campos inválidos", 5000, Notification.Position.MIDDLE);
+            notification.open();
+        }
+    }
 
     protected void fillSaveDTO(TouristDTO dto, TouristSaveDTO save) {
         save.setName(dto.getName());
@@ -230,59 +251,27 @@ public class TouristView extends EntityView<TouristDTO> {
         save.setCountryId(dto.getCountry().getId());
         save.setGenderId(dto.getGender().getId());
     }
-    @Override
-    protected void onAddButtonClick() {
-        TouristDTO dto = new TouristDTO();
-        TouristSaveDTO save = new TouristSaveDTO();
 
-        try {
-            binder.writeBean(dto);
-            fillSaveDTO(dto, save);
-            touristService.create(save);
-            refreshGrid();
-            cleanForm();
-        } catch (ValidationException e) {
-            showInvalidFieldsNotification();
-            throw new RuntimeException(e);
-        }
-    }
-    @Override
-    protected void onUpdateButtonClick() {
-        TouristDTO dto = binder.getBean();
-
-        if (dto != null) {
-            try {
-                binder.writeBean(dto);
-                TouristSaveDTO save = new TouristSaveDTO();
-                fillSaveDTO(dto, save);
-                touristService.update(dto.getPassport(),save);
-                refreshGrid();
-                cleanForm();
-            } catch (ValidationException e) {
-                showInvalidFieldsNotification();
-            }
-        } else {
-            showNoSelectionNotification();
-        }
-    }
     @Override
     protected void onDeleteButtonClick() {
         TouristDTO dto = binder.getBean();
 
         if (dto != null) {
-            touristService.delete(dto.getPassport());
-            refreshGrid();
-            cleanForm();
+            try {
+                touristService.delete(dto.getPassport());
+                cleanForm();
+                refreshGrid();
+            } catch (HttpServerErrorException e) {
+                if (e.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+                    Notification notification = new Notification(
+                            "El elemento no puede ser eliminado porque todavía tiene contratos asociados",
+                            3000,
+                            Notification.Position.TOP_CENTER);
+                    notification.open();
+                }
+            }
         } else {
             showNoSelectionNotification();
         }
-    }
-    @Override
-    protected void configureUI() {
-        createGridLayout(this.splitLayout);
-        createEditorLayout(this.splitLayout);
-        validateBinder();
-        refreshGrid();
-        binder.bindInstanceFields(this);
     }
 }
