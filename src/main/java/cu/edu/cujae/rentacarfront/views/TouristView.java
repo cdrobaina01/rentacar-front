@@ -194,7 +194,7 @@ public class TouristView extends EntityView<TouristDTO> {
         if (binder.isValid()) {
             try {
                 binder.writeBean(dto);
-                fillSaveDTO(dto, save);
+                fillSaveDTO(dto,save);
                 touristService.create(save);
                 binder.setBean(null);
                 cleanForm();

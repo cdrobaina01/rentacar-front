@@ -15,4 +15,5 @@ public class DriverDTO {
     private String address;
     private String email;
     private CategoryDTO category;
+
 }
