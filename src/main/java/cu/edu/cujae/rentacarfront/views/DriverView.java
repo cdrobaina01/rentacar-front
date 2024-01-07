@@ -15,7 +15,9 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import cu.edu.cujae.rentacarfront.dto.CategoryDTO;
 import cu.edu.cujae.rentacarfront.dto.DriverDTO;
+import cu.edu.cujae.rentacarfront.dto.TouristDTO;
 import cu.edu.cujae.rentacarfront.dto.save.DriverSaveDTO;
+import cu.edu.cujae.rentacarfront.dto.save.TouristSaveDTO;
 import cu.edu.cujae.rentacarfront.services.CategoryService;
 import cu.edu.cujae.rentacarfront.services.DriverService;
 import cu.edu.cujae.rentacarfront.utils.AggregateService;
@@ -26,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 @Route("driver")
 @PageTitle("Conductor| Rider Rent a Car")
-public class DriverView extends EntityView<DriverDTO> {
+public class DriverView extends EntityView<DriverDTO, DriverSaveDTO> {
     private final DriverService driverService;
     private CategoryService CategoryService;
     private TextField dni;
@@ -162,8 +164,7 @@ public class DriverView extends EntityView<DriverDTO> {
         }
 
     }
-
-    private void fillSaveDTO(DriverDTO dto, DriverSaveDTO save) {
+    protected void fillSaveDTO(DriverDTO dto, DriverSaveDTO save) {
         save.setName(dto.getName());
         save.setDni(dto.getDni());
         save.setEmail(dto.getEmail());
@@ -247,7 +248,6 @@ public class DriverView extends EntityView<DriverDTO> {
     protected void refreshGrid() {
 
     }
-
     @Override
     protected void validateBinder() {
             binder.forField(name)
@@ -275,10 +275,5 @@ public class DriverView extends EntityView<DriverDTO> {
                             "Debe seleccionar una categoría")
                     .bind(DriverDTO::getCategory, DriverDTO::setCategory);
         }
-
-
-
-
-
     }
 

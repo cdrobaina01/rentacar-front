@@ -17,14 +17,17 @@ import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.theme.lumo.LumoIcon;
+import cu.edu.cujae.rentacarfront.dto.TouristDTO;
+import cu.edu.cujae.rentacarfront.dto.save.TouristSaveDTO;
 import cu.edu.cujae.rentacarfront.services.BaseService;
 import cu.edu.cujae.rentacarfront.utils.AggregateService;
 import cu.edu.cujae.rentacarfront.utils.NamedEntity;
 
 import java.util.List;
 
-public abstract class EntityView<T> extends VerticalLayout {
+public abstract class EntityView<T, U> extends VerticalLayout {
     // Constantes
     private static final String FULL_SIZE = "100%";
     private static final double GRID_SIZE = 80;
@@ -45,7 +48,21 @@ public abstract class EntityView<T> extends VerticalLayout {
     // Variables
     protected final AggregateService aggregateService;
     protected T selectedItem;
+    private Registration buttonClickListener;
 
+    //Metodos Abstractos
+    protected abstract void onSearchButtonClick();
+    protected abstract void onAddButtonClick();
+
+    protected abstract void fillSaveDTO(T dto, U save);
+    protected abstract void onDeleteButtonClick();
+    protected abstract void onUpdateButtonClick();
+    protected abstract FormLayout createFormLayout();
+    protected abstract void setDataGrid();
+    protected abstract void cleanForm();
+    protected abstract void updateForm();
+    protected abstract void refreshGrid();
+    protected abstract void validateBinder();
     public EntityView(AggregateService aggregateService) {
         this.aggregateService = aggregateService;
         setSizeFull();
@@ -53,7 +70,6 @@ public abstract class EntityView<T> extends VerticalLayout {
         initUIComponents();
         configureGrid();
     }
-
     private void initUIComponents() {
         initLayout();
         initHeader();
@@ -61,14 +77,12 @@ public abstract class EntityView<T> extends VerticalLayout {
         initSplitLayout();
         initButtons();
     }
-
     private void initLayout() {
         appLayout = new AppLayout();
         appLayout.getElement().getStyle().set("height", FULL_SIZE);
         appLayout.getElement().getStyle().set("width", FULL_SIZE);
         add(appLayout);
     }
-
     private void initSplitLayout() {
         splitLayout = new SplitLayout();
         splitLayout.setSizeFull();
@@ -77,7 +91,6 @@ public abstract class EntityView<T> extends VerticalLayout {
         addToPrimary();
         setSplitLayoutContent();
     }
-
     private Div createDiv() {
         return new Div();
     }
@@ -86,7 +99,6 @@ public abstract class EntityView<T> extends VerticalLayout {
         VerticalLayout content = new VerticalLayout();
         splitLayout.addToPrimary(content);
     }
-
     private void setSplitLayoutContent() {
         splitLayout.setSplitterPosition(GRID_SIZE);
         appLayout.setContent(splitLayout);
@@ -97,7 +109,6 @@ public abstract class EntityView<T> extends VerticalLayout {
         appLayout.setDrawerOpened(true);
         appLayout.addToDrawer(navigationBar);
     }
-
     private void initHeader() {
         HorizontalLayout header = new HorizontalLayout();
         Div iconDiv = new Div();
@@ -107,7 +118,6 @@ public abstract class EntityView<T> extends VerticalLayout {
         header.add(iconDiv, new H1("Rider Rent a Car"));
         appLayout.addToNavbar(header);
     }
-
     protected void createGridLayout(SplitLayout splitLayout) {
         Div wrapper = new Div();
         grid.setSizeFull();
@@ -118,7 +128,6 @@ public abstract class EntityView<T> extends VerticalLayout {
         initSearchComponents(wrapper);
         wrapper.add(gridContainer);
     }
-
     private void initSearchComponents(Div wrapper) {
         searchField = new TextField();
         searchField.setPlaceholder(getTranslation("placeholder.id"));
@@ -126,48 +135,29 @@ public abstract class EntityView<T> extends VerticalLayout {
         HorizontalLayout searchLayout = new HorizontalLayout(searchField, searchButton);
         wrapper.add(searchLayout);
     }
-    protected void configureGridListenner() {
+    protected void configureGridListener() {
         grid.asSingleSelect().addValueChangeListener(event -> {
             selectedItem = event.getValue();
             if (selectedItem != null) {
                 binder.setBean(selectedItem);  // Establece el bean del binder
                 updateForm();
-                setUpdateButton();
+                setUpdateButton();  // Configura el botón para actualizar
             } else {
                 binder.setBean(null);  // Limpia el bean del binder
                 cleanForm();
-                setAddButton();
+                setAddButton();  // Configura el botón para añadir
             }
         });
     }
     protected void configureGrid() {
         setDataGrid();
-        configureGridListenner();
+        configureGridListener();
     }
-    protected void setUpdateButton() {
-        addButton.setText(getTranslation("button.update"));
-        addButton.addClickListener(click -> onUpdateButtonClick());
-    }
-    protected void setAddButton() {
-        addButton.setText(getTranslation("button.add"));
-        addButton.addClickListener(click -> onAddButtonClick());
-    }
-    protected abstract void onSearchButtonClick();
-    private void initButtons() {
-        addButton = new Button(getTranslation("button.add"));
-        deleteButton = new Button(getTranslation("button.delete"));
-    }
-
-    protected abstract void onAddButtonClick();
-
-    protected abstract void onDeleteButtonClick();
-    protected abstract void onUpdateButtonClick();
-
     protected void createButtEditorLayout(Div editorLayout){
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.add(addButton, deleteButton);
         editorLayout.add(buttonLayout);
-        addButton.addClickListener(click -> onAddButtonClick());
+        setAddButton();
         deleteButton.addClickListener(click -> onDeleteButtonClick());
     }
     protected <U extends NamedEntity> ComboBox<U> createComboBox(String label, BaseService<U, ?> service) {
@@ -185,26 +175,35 @@ public abstract class EntityView<T> extends VerticalLayout {
         Notification notification = new Notification("Campos inválidos", 500, Notification.Position.TOP_CENTER);
         notification.open();
     }
-    protected TextField createTextField(String label) {
-        return new TextField(label);
+    protected void showAddSuccessNotification() {
+        Notification notification = new Notification(
+                "Elemento agregado con éxito", 3000, Notification.Position.MIDDLE);
+        notification.open();
     }
-
-    protected IntegerField createIntegerField(String label) {
-        return new IntegerField(label);
+    protected void showUpdateSuccessNotification() {
+        Notification notification = new Notification(
+                "Elemento actualizado con éxito", 3000, Notification.Position.MIDDLE);
+        notification.open();
     }
-    protected EmailField createEmailField(String label) {
-        return new EmailField(label);
+    protected void showDeleteSuccessNotification() {
+        Notification notification = new Notification(
+                "Elemento eliminado con éxito", 3000, Notification.Position.MIDDLE);
+        notification.open();
     }
-    protected void updateGrid(List<T> elements) {
-        grid.setItems(elements);
+    protected void showInvalidElementSelected() {
+        Notification notification = new Notification(
+                "El elemento no puede ser eliminado porque todavía tiene contratos asociados",
+                3000, Notification.Position.TOP_CENTER);
+        notification.open();
     }
-    protected void updateGrid(T element) {
-        grid.setItems(element);
+    protected void showInvalidIdentifier() {
+        Notification notification = new Notification(
+                "¡No existen elementos con ese identificador!", 3000, Notification.Position.MIDDLE);
+        notification.open();
     }
     protected void configureUI() {
         createGridLayout(this.splitLayout);
         createEditorLayout(this.splitLayout);
-        validateBinder();
         refreshGrid();
     }
     protected void createEditorLayout(SplitLayout splitLayout) {
@@ -222,14 +221,49 @@ public abstract class EntityView<T> extends VerticalLayout {
         editorLayoutDiv.add(editorDiv);
         return editorLayoutDiv;
     }
-    protected abstract FormLayout createFormLayout();
+    private void initButtons() {
+        addButton = new Button(getTranslation("button.add"));
+        deleteButton = new Button(getTranslation("button.delete"));
 
-    protected abstract void setDataGrid();
+        // Añade los listeners a los botones
+        buttonClickListener = addButton.addClickListener(click -> onAddButtonClick());
+        deleteButton.addClickListener(click -> onDeleteButtonClick());
+    }
 
-    protected abstract void cleanForm();
+    protected void setUpdateButton() {
+        // Elimina el listener existente
+        if (buttonClickListener != null) {
+            buttonClickListener.remove();
+        }
 
-    protected abstract void updateForm();
+        addButton.setText(getTranslation("button.update"));
+        // Añade el nuevo listener y guarda la referencia
+        buttonClickListener = addButton.addClickListener(click -> onUpdateButtonClick());
+    }
 
-    protected abstract void refreshGrid();
-    protected abstract void validateBinder();
+    protected void setAddButton() {
+        // Elimina el listener existente
+        if (buttonClickListener != null) {
+            buttonClickListener.remove();
+        }
+
+        addButton.setText(getTranslation("button.add"));
+        // Añade el nuevo listener y guarda la referencia
+        buttonClickListener = addButton.addClickListener(click -> onAddButtonClick());
+    }
+    protected TextField createTextField(String label) {
+        return new TextField(label);
+    }
+    protected IntegerField createIntegerField(String label) {
+        return new IntegerField(label);
+    }
+    protected EmailField createEmailField(String label) {
+        return new EmailField(label);
+    }
+    protected void updateGrid(List<T> elements) {
+        grid.setItems(elements);
+    }
+    protected void updateGrid(T element) {
+        grid.setItems(element);
+    }
 }

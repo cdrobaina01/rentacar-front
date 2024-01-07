@@ -20,6 +20,7 @@ import cu.edu.cujae.rentacarfront.dto.*;
 
 import cu.edu.cujae.rentacarfront.dto.save.CarSaveDTO;
 import cu.edu.cujae.rentacarfront.dto.save.DriverSaveDTO;
+import cu.edu.cujae.rentacarfront.dto.save.TouristSaveDTO;
 import cu.edu.cujae.rentacarfront.services.CarService;
 import cu.edu.cujae.rentacarfront.services.ModelService;
 import cu.edu.cujae.rentacarfront.services.SituationService;
@@ -32,7 +33,7 @@ import java.util.List;
 
 @Route("car")
 @PageTitle("Carro | Rider Rent a Car")
-public class CarView extends EntityView<CarDTO>{
+public class CarView extends EntityView<CarDTO, CarSaveDTO>{
     private final CarService carService;
     private final ModelService modelService;
     private final SituationService situationService;
@@ -40,9 +41,8 @@ public class CarView extends EntityView<CarDTO>{
     private IntegerField km;
     private TextField color;
     private ComboBox<ModelDTO> model;
+    private ComboBox<BrandDTO> brand;
     private ComboBox<SituationDTO> situation;
-
-
     public CarView(AggregateService aggregateService){
         super(aggregateService);
         this.carService = aggregateService.getCarService();
@@ -53,7 +53,7 @@ public class CarView extends EntityView<CarDTO>{
         configureUI();
         binder.bindInstanceFields(this);
     }
-
+    @Override
     protected void onSearchButtonClick() {
         List<CarDTO> result = carService.getAll();
         List<CarDTO> auxiliar = new ArrayList<>();
@@ -71,161 +71,90 @@ public class CarView extends EntityView<CarDTO>{
             updateGrid(auxiliar);
         }
     }
+    @Override
+    protected void setDataGrid() {
+        grid.addColumn(CarDTO::getPlate)
+                .setHeader(getTranslation("car.plate"))
+                .setSortable(true);
+        grid.addColumn(CarDTO::getKm)
+                .setHeader(getTranslation("car.km"))
+                .setSortable(true);
+        grid.addColumn(CarDTO::getColor)
+                .setHeader(getTranslation("car.color"))
+                .setSortable(true);
+        grid.addColumn(car -> car.getModel().getName())
+                .setHeader(getTranslation("car.model"))
+                .setSortable(true);
+        grid.addColumn(car -> car.getModel().getBrand().getName())
+                .setHeader(getTranslation("car.brand"))
+                .setSortable(true);
+        grid.addColumn(car -> car.getSituation().getName())
+                .setHeader(getTranslation("car.situation"))
+                .setSortable(true);
+        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
+    }
+    @Override
+    protected void cleanForm() {
+        plate.clear();
+        km.clear();
+        color.clear();
+        model.clear();
+        brand.clear();
+        situation.clear();
 
-            protected void configureGrid() {
-                grid.addColumn(CarDTO::getPlate)
-                        .setHeader(getTranslation("car.plate"))
-                        .setSortable(true);
-                grid.addColumn(CarDTO::getKm)
-                        .setHeader(getTranslation("car.km"))
-                        .setSortable(true);
-                grid.addColumn(CarDTO::getColor)
-                        .setHeader(getTranslation("car.color"))
-                        .setSortable(true);
-                grid.addColumn(car -> car.getModel().getName())
-                        .setHeader(getTranslation("car.model"))
-                        .setSortable(true);
-                grid.addColumn(car -> car.getSituation().getName())
-                        .setHeader(getTranslation("car.situation"))
-                        .setSortable(true);
-                grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
+        // Desbloquea el campo de la placa
+        plate.setReadOnly(false);
+
+        // Limpia la selección actual
+        selectedItem = null;
+        binder.setBean(null);
+    }
+    @Override
+    protected void updateForm() {
+        plate.setValue(selectedItem.getPlate());
+        km.setValue(selectedItem.getKm());
+        color.setValue(selectedItem.getColor());
+        model.setValue(selectedItem.getModel());
+
+        situation.setValue(selectedItem.getSituation());
+        // Bloquea el campo de la placa
+        plate.setReadOnly(true);
+    }
+    @Override
+    protected FormLayout createFormLayout() {
+        FormLayout formLayout = new FormLayout();
+        plate = createTextField("Matrícula");
+        km = createIntegerField("Kilometraje");
+        color = createTextField("Color");
+        model = createComboBox("Modelo", modelService);
+        situation = createComboBox("Situación", situationService);
+        formLayout.add(plate, km, color, model, situation);
+        return formLayout;
+    }
+    @Override
+    protected void onAddButtonClick() {
+        CarDTO dto = new CarDTO();
+        CarSaveDTO save = new CarSaveDTO();
+        if (binder.isValid()) {
+            try {
+                binder.writeBean(dto);
+                fillSaveDTO(dto,save);
+                carService.create(save);
+                binder.setBean(null);
+                cleanForm();
+                refreshGrid();
+            } catch (Exception e) {
+                showInvalidFieldsNotification();
             }
-
-        @Override
-        protected void cleanForm() {
-            plate.clear();
-            km.clear();
-            color.clear();
-            model.clear();
-            situation.clear();
-
-            // Desbloquea el campo de la placa
-           plate.setReadOnly(false);
-
-            // Limpia la selección actual
-            selectedItem = null;
-            binder.setBean(null);
+        } else {
+            Notification notification = new Notification(
+                    "Tienes campos inválidos", 5000, Notification.Position.MIDDLE);
+            notification.open();
         }
+    }
 
-        @Override
-        protected FormLayout createFormLayout() {
-                FormLayout formLayout = new FormLayout();
-                plate = createTextField("Matrícula");
-                km = createIntegerField("Kilometraje");
-                color = createTextField("Color");
-                model = createComboBox("Modelo", modelService);
-                situation = createComboBox("Situación", situationService);
-                formLayout.add(plate, km, color, model, situation);
-                return formLayout;
-            }
-
-            @Override
-            protected void setDataGrid() {
-                grid.addColumn(CarDTO::getPlate)
-                        .setHeader(getTranslation("car.plate"))
-                        .setSortable(true);
-                grid.addColumn(CarDTO::getKm)
-                        .setHeader(getTranslation("car.getKm"))
-                        .setSortable(true);
-                grid.addColumn(CarDTO::getColor)
-                        .setHeader(getTranslation("car.color"))
-                        .setSortable(true);
-                grid.addColumn(car -> car.getModel().getName())
-                        .setHeader(getTranslation("car.model"))
-                        .setSortable(true);
-            grid.addColumn(car -> car.getSituation().getName())
-                    .setHeader(getTranslation("car.situatuin"))
-                    .setSortable(true);
-                grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
-        }
-
-
-
-            @Override
-            protected void updateForm() {
-                plate.setValue(selectedItem.getPlate());
-                km.setValue(selectedItem.getKm());
-                color.setValue(selectedItem.getColor());
-                model.setValue(selectedItem.getModel());
-                situation.setValue(selectedItem.getSituation());
-                // Bloquea el campo de la placa
-                plate.setReadOnly(true);
-            }
-
-            @Override
-            protected void onAddButtonClick() {
-                CarDTO dto = new CarDTO();
-                CarSaveDTO save = new CarSaveDTO();
-                if (binder.isValid()) {
-                    try {
-                        binder.writeBean(dto);
-                        fillSaveDTO(dto,save);
-                        carService.create(save);
-                        binder.setBean(null);
-                        cleanForm();
-                        refreshGrid();
-                    } catch (Exception e) {
-                        showInvalidFieldsNotification();
-                    }
-                } else {
-                    Notification notification = new Notification(
-                            "Tienes campos inválidos", 5000, Notification.Position.MIDDLE);
-                    notification.open();
-                }
-            }
-
-            @Override
-            protected void onDeleteButtonClick() {
-                CarDTO dto = binder.getBean();
-
-                if (dto != null) {
-                    try {
-                        carService.delete(dto.getPlate());
-                        cleanForm();
-                        refreshGrid();
-                    } catch (Exception e) {
-                        Notification notification = new Notification(
-                                "El elemento no puede ser eliminado", 3000, Notification.Position.MIDDLE);
-                        notification.open();
-                    }
-                } else {
-                    showNoSelectionNotification();
-                }
-            }
-
-            @Override
-            protected void onUpdateButtonClick() {
-                CarDTO dto = binder.getBean();
-                System.out.println("Binder antes de la actualización: " + binder.getBean());
-                System.out.println("dto antes de la actualización: " + dto);
-                if (binder.isValid()) {
-                    if (dto != null) {
-                        try {
-                            binder.writeBean(dto);
-                            System.out.println("Binder después de la actualización: " + binder.getBean());
-                            DriverSaveDTO save = new DriverSaveDTO();
-                            fillSaveDTO(dto, save);
-                            carService.update(dto.getPlate(),save);
-                            binder.setBean(null);
-                            cleanForm();
-                            refreshGrid();
-                        } catch (ValidationException e) {
-                            showInvalidFieldsNotification();
-                        }
-                    } else {
-                        showNoSelectionNotification();
-                    }
-                }
-                else {
-                    // Muestra una única notificación de error
-                    Notification notification = new Notification(
-                            "Tienes campos inválidos", 5000, Notification.Position.MIDDLE);
-                    notification.open();
-                }
-
-            }
-
-    private void fillSaveDTO(CarDTO dto, CarSaveDTO save) {
+    @Override
+    protected void fillSaveDTO(CarDTO dto, CarSaveDTO save) {
         save.setPlate(dto.getPlate());
         save.setKm(dto.getKm());
         save.setColor(dto.getColor());
@@ -233,17 +162,65 @@ public class CarView extends EntityView<CarDTO>{
         save.setSituationId(dto.getSituation().getId());
     }
 
-            @Override
-            protected void configureUI() {
-                // Implementación de la configuración de la interfaz de usuario si es necesario
-            }
+    @Override
+    protected void onDeleteButtonClick() {
+        CarDTO dto = binder.getBean();
 
-            @Override
-            protected void refreshGrid() {
-                List<CarDTO> all = carService.getAll();
-                grid.setItems(all);
+        if (dto != null) {
+            try {
+                carService.delete(dto.getPlate());
+                cleanForm();
+                refreshGrid();
+            } catch (Exception e) {
+                Notification notification = new Notification(
+                        "El elemento no puede ser eliminado", 3000, Notification.Position.MIDDLE);
+                notification.open();
             }
+        } else {
+            showNoSelectionNotification();
+        }
+    }
+    @Override
+    protected void onUpdateButtonClick() {
+        CarDTO dto = binder.getBean();
+        System.out.println("Binder antes de la actualización: " + binder.getBean());
+        System.out.println("dto antes de la actualización: " + dto);
+        if (binder.isValid()) {
+            if (dto != null) {
+                try {
+                    binder.writeBean(dto);
+                    System.out.println("Binder después de la actualización: " + binder.getBean());
+                    CarSaveDTO save = new CarSaveDTO();
+                    fillSaveDTO(dto, save);
+                    carService.update(dto.getPlate(),save);
+                    binder.setBean(null);
+                    cleanForm();
+                    refreshGrid();
+                } catch (ValidationException e) {
+                    showInvalidFieldsNotification();
+                }
+            } else {
+                showNoSelectionNotification();
+            }
+        }
+        else {
+            // Muestra una única notificación de error
+            Notification notification = new Notification(
+                    "Tienes campos inválidos", 5000, Notification.Position.MIDDLE);
+            notification.open();
+        }
 
+    }
+
+    @Override
+    protected void configureUI() {
+        // Implementación de la configuración de la interfaz de usuario si es necesario
+    }
+    @Override
+    protected void refreshGrid() {
+        List<CarDTO> all = carService.getAll();
+        grid.setItems(all);
+    }
     @Override
     protected void validateBinder() {
         binder.forField(plate)

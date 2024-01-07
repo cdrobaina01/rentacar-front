@@ -9,7 +9,7 @@ public class ViewFactory {
         this.aggregateService = aggregateService;
     }
 
-    public EntityView<?> createView(String viewName) {
+    public EntityView<?,?> createView(String viewName) {
         switch (viewName) {
             case "Tourists":
                 return new TouristView(aggregateService);
