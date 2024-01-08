@@ -3,7 +3,6 @@ package cu.edu.cujae.rentacarfront.views;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -27,7 +26,6 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
-
 @Route("tourist")
 @PageTitle("Turista | Rider Rent a Car")
 public class TouristView extends EntityView<TouristDTO, TouristSaveDTO> {
@@ -187,7 +185,6 @@ public class TouristView extends EntityView<TouristDTO, TouristSaveDTO> {
     }
     @Override
     protected void onAddButtonClick() {
-        System.out.println("Tocaste el boton agregar");
         TouristDTO dto = new TouristDTO();
         TouristSaveDTO save = new TouristSaveDTO();
         BinderValidationStatus<TouristDTO> status = binder.validate();
@@ -208,11 +205,8 @@ public class TouristView extends EntityView<TouristDTO, TouristSaveDTO> {
             showInvalidFieldsNotification();
         }
     }
-
-
     @Override
     protected void onUpdateButtonClick() {
-        System.out.println("Tocaste el boton actualizar");
         TouristDTO dto = binder.getBean();
         BinderValidationStatus<TouristDTO> status = binder.validate();
 
