@@ -8,20 +8,35 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import cu.edu.cujae.rentacarfront.dto.LoginRequestDTO;
+import cu.edu.cujae.rentacarfront.services.AuthService;
+import cu.edu.cujae.rentacarfront.services.TouristService;
+import cu.edu.cujae.rentacarfront.utils.AggregateService;
 
-@Route("login") // (1)
+@Route("login")
 @PageTitle("Inicio de sesion | Rider Rent a Car")
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
+    protected final AggregateService aggregateService;
+    private final AuthService authService;
+    private final LoginForm login = new LoginForm();
 
-    private final LoginForm login = new LoginForm(); // (2)
+    public LoginView(AggregateService aggregateService) {
 
-    public LoginView() {
         addClassName("login-view");
-        setSizeFull(); // (3)
+        setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
+        this.aggregateService = aggregateService;
+        authService = aggregateService.getAuthService();
+        login.addLoginListener(e -> {
+            // Crea un LoginRequestDTO con el nombre de usuario y la contraseña
+            LoginRequestDTO loginRequest = new LoginRequestDTO(e.getUsername(), e.getPassword());
 
-        login.setAction("login"); // (4)
+            // Haz una solicitud POST a /api/auth/login con el LoginRequestDTO
+            // Si las credenciales son correctas, la API devolverá un LoginResponseDTO con el token JWT
+            // Aquí necesitarás llamar a tu AuthService para hacer la solicitud y manejar la respuesta
+            authService.login(loginRequest.getUsername(), loginRequest.getPassword());
+        });
 
         add(new H1("Rider"), new H2("Rent a Car"), login);
     }
@@ -29,7 +44,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
         // informa al usuario sobre un error de autenticación
-        if (beforeEnterEvent.getLocation() // (5)
+        if (beforeEnterEvent.getLocation()
                 .getQueryParameters()
                 .getParameters()
                 .containsKey("error")) {

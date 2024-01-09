@@ -23,4 +23,7 @@ public class ViewFactory {
                 throw new IllegalArgumentException("Invalid view name: " + viewName);
         }
     }
+    public LoginView createLoginView() {
+        return new LoginView(aggregateService);
+        }
 }

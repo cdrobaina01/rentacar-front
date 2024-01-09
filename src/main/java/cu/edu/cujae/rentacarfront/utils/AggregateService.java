@@ -16,10 +16,13 @@ public class AggregateService {
     private final FeeService feeService;
     private final ModelService modelService;
     private final PaymethodService paymethodService;
+    private final AuthService authService;
     public AggregateService(TouristService touristService, CarService carService,
                             DriverService driverService, ContractService contractService,
                             BrandService brandService, FeeService feeService,
-                            ModelService modelService, PaymethodService paymethodService) {
+                            ModelService modelService, PaymethodService paymethodService,
+                            AuthService authService) {
+
         this.touristService = touristService;
         this.carService = carService;
         this.driverService = driverService;
@@ -28,6 +31,7 @@ public class AggregateService {
         this.feeService = feeService;
         this.modelService = modelService;
         this.paymethodService = paymethodService;
+        this.authService = authService;
     }
 
 }
