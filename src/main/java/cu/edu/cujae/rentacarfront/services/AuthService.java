@@ -3,6 +3,8 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinService;
 import cu.edu.cujae.rentacarfront.dto.LoginRequestDTO;
 import cu.edu.cujae.rentacarfront.dto.LoginResponseDTO;
+import cu.edu.cujae.rentacarfront.utils.TokenData;
+import lombok.Getter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -14,14 +16,15 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+@Getter
 @Service
 public class AuthService extends BaseService<LoginRequestDTO, LoginResponseDTO> {
+
     public AuthService(RestTemplate restTemplate) {
         super(restTemplate, "http://localhost:8080/api/",LoginRequestDTO[].class, LoginResponseDTO.class);
     }
 
     public void login(String username, String password) {
-        System.out.println("AuthService.login - inicio");
         LoginRequestDTO loginRequest = new LoginRequestDTO(username, password);
         System.out.println("AuthService.login - loginRequest creado: " + loginRequest);
 
@@ -33,6 +36,7 @@ public class AuthService extends BaseService<LoginRequestDTO, LoginResponseDTO> 
         System.out.println("AuthService.login - responseEntity obtenido: " + responseEntity);
 
         String jwt = responseEntity.getBody().getToken();
+        System.out.println(jwt);
 
         Cookie jwtCookie = new Cookie("jwt", jwt);
         jwtCookie.setHttpOnly(true);
@@ -44,9 +48,10 @@ public class AuthService extends BaseService<LoginRequestDTO, LoginResponseDTO> 
 
         setJwtToken(jwt);
         System.out.println("AuthService.login - jwt almacenado en BaseService");
+        TokenData token = new TokenData();
+        token.setToken(jwt);
 
         // Redirige al usuario a la vista 'tourist'
         UI.getCurrent().navigate("tourist");
     }
-
 }

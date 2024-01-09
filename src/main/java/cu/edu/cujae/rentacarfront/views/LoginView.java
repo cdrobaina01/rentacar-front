@@ -8,6 +8,7 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import cu.edu.cujae.rentacarfront.dto.LoginRequestDTO;
 import cu.edu.cujae.rentacarfront.services.AuthService;
 import cu.edu.cujae.rentacarfront.services.TouristService;
@@ -15,6 +16,7 @@ import cu.edu.cujae.rentacarfront.utils.AggregateService;
 
 @Route("login")
 @PageTitle("Inicio de sesion | Rider Rent a Car")
+@AnonymousAllowed
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     protected final AggregateService aggregateService;
     private final AuthService authService;

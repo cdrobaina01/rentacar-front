@@ -1,5 +1,8 @@
 package cu.edu.cujae.rentacarfront.services;
 
+import com.vaadin.flow.server.VaadinService;
+import jakarta.servlet.http.Cookie;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -9,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
+@RequiredArgsConstructor
 public abstract class BaseService<T, S> {
     protected RestTemplate restTemplate;
     protected String apiUrl;
@@ -29,8 +33,8 @@ public abstract class BaseService<T, S> {
 
     public List<T> getAll() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + jwtToken);
-        System.out.println("BaseService.getAll - jwtToken: " + jwtToken);
+        headers.set("Authorization", "Bearer " + obtenerCookie("jwt"));
+        System.out.println(headers);
         HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
 
         ResponseEntity<T[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, arrayClass);
@@ -70,4 +74,19 @@ public abstract class BaseService<T, S> {
 
         restTemplate.exchange(apiUrl, HttpMethod.POST, entity, saveClass);
     }
+    public String obtenerCookie(String nombreCookie) {
+        // Obtener todas las cookies
+        Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
+
+        // Buscar la cookie deseada
+        for (Cookie cookie : cookies) {
+            if (nombreCookie.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+
+        // Si no se encuentra la cookie, devolver null
+        return null;
+    }
+
 }

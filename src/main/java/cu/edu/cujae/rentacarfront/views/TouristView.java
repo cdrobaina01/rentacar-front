@@ -13,11 +13,13 @@ import com.vaadin.flow.data.validator.EmailValidator;
 import com.vaadin.flow.data.validator.StringLengthValidator;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import cu.edu.cujae.rentacarfront.dto.TouristDTO;
 import cu.edu.cujae.rentacarfront.dto.save.TouristSaveDTO;
 import cu.edu.cujae.rentacarfront.services.TouristService;
 import cu.edu.cujae.rentacarfront.utils.AggregateService;
 import cu.edu.cujae.rentacarfront.utils.TouristGender;
+import jakarta.annotation.security.PermitAll;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -27,6 +29,7 @@ import java.util.Objects;
 
 @Route("tourist")
 @PageTitle("Turista | Rider Rent a Car")
+@PermitAll
 public class TouristView extends EntityView<TouristDTO, TouristSaveDTO> {
     private final TouristService touristService;
     private TextField name;
