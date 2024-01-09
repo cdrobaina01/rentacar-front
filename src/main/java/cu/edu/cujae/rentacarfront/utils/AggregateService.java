@@ -13,37 +13,21 @@ public class AggregateService {
     private final DriverService driverService;
     private final ContractService contractService;
     private final BrandService brandService;
-    private final CountryService countryService;
-
     private final FeeService feeService;
-
-    private final GenderService genderService;
-
     private final ModelService modelService;
-
     private final PaymethodService paymethodService;
-
-    private final SituationService situationService;
-
-
-
     public AggregateService(TouristService touristService, CarService carService,
                             DriverService driverService, ContractService contractService,
-                            BrandService brandService, CountryService countryService,
-                            FeeService feeService, GenderService genderService,
-                            ModelService modelService, PaymethodService paymethodService,
-                            SituationService situationService) {
+                            BrandService brandService, FeeService feeService,
+                            ModelService modelService, PaymethodService paymethodService) {
         this.touristService = touristService;
         this.carService = carService;
         this.driverService = driverService;
         this.contractService = contractService;
         this.brandService = brandService;
-        this.countryService = countryService;
         this.feeService = feeService;
-        this.genderService = genderService;
         this.modelService = modelService;
         this.paymethodService = paymethodService;
-        this.situationService = situationService;
     }
 
 }

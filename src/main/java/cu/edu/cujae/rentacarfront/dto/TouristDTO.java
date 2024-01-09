@@ -1,5 +1,6 @@
 package cu.edu.cujae.rentacarfront.dto;
 
+import cu.edu.cujae.rentacarfront.utils.TouristGender;
 import lombok.*;
 
 @NoArgsConstructor
@@ -12,6 +13,6 @@ public class TouristDTO {
     private Integer age;
     private String phone;
     private String email;
-    private GenderDTO gender;
-    private CountryDTO country;
+    private TouristGender gender;
+    private String country;
 }

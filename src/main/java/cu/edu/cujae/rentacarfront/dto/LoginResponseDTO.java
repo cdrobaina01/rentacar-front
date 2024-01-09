@@ -1,6 +1,6 @@
 package cu.edu.cujae.rentacarfront.dto;
 
-import cu.edu.cujae.rentacarfront.utils.NamedEntity;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class SituationDTO implements NamedEntity {
-    private Integer id;
-    private String name;
+public class LoginResponseDTO {
+    private String token;
 }

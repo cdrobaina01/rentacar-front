@@ -1,5 +1,6 @@
 package cu.edu.cujae.rentacarfront.dto;
 
+import cu.edu.cujae.rentacarfront.utils.CarSituation;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +15,5 @@ public class CarDTO {
     private Integer km;
     private String color;
     private ModelDTO model;
-    private SituationDTO situation;
+    private CarSituation situation;
 }

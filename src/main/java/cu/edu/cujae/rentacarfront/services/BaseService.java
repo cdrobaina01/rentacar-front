@@ -1,5 +1,9 @@
 package cu.edu.cujae.rentacarfront.services;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.ParameterizedType;
@@ -10,31 +14,58 @@ public abstract class BaseService<T, S> {
     protected String apiUrl;
     protected Class<T[]> arrayClass;
     protected Class<S> saveClass;
+    protected String jwtToken;
 
     public BaseService(RestTemplate restTemplate, String apiUrl, Class<T[]> arrayClass, Class<S> saveClass) {
         this.restTemplate = restTemplate;
         this.apiUrl = apiUrl;
         this.arrayClass = arrayClass;
         this.saveClass = saveClass;
-
     }
+
+    public void setJwtToken(String jwtToken) {
+        this.jwtToken = jwtToken;
+    }
+
     public List<T> getAll() {
-        return List.of(restTemplate.getForObject(apiUrl, arrayClass));
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+
+        ResponseEntity<T[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, arrayClass);
+        return List.of(responseEntity.getBody());
     }
 
     public T getOne(String id) {
-        return restTemplate.getForObject(apiUrl + "/" + id, (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+
+        ResponseEntity<T> responseEntity = restTemplate.exchange(apiUrl + "/" + id, HttpMethod.GET, entity, (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
+        return responseEntity.getBody();
     }
 
     public void delete(String id) {
-        restTemplate.delete(apiUrl + "/" + id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+
+        restTemplate.exchange(apiUrl + "/" + id, HttpMethod.DELETE, entity, Void.class);
     }
 
     public void update(String id, S updatedEntity) {
-        restTemplate.put(apiUrl + "/" + id, updatedEntity);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<S> entity = new HttpEntity<>(updatedEntity, headers);
+
+        restTemplate.exchange(apiUrl + "/" + id, HttpMethod.PUT, entity, Void.class);
     }
 
     public void create(S newEntity) {
-        restTemplate.postForObject(apiUrl, newEntity, saveClass);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<S> entity = new HttpEntity<>(newEntity, headers);
+
+        restTemplate.exchange(apiUrl, HttpMethod.POST, entity, saveClass);
     }
 }

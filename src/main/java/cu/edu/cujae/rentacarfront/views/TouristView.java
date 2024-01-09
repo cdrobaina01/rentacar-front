@@ -13,37 +13,32 @@ import com.vaadin.flow.data.validator.EmailValidator;
 import com.vaadin.flow.data.validator.StringLengthValidator;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import cu.edu.cujae.rentacarfront.dto.CountryDTO;
-import cu.edu.cujae.rentacarfront.dto.GenderDTO;
 import cu.edu.cujae.rentacarfront.dto.TouristDTO;
 import cu.edu.cujae.rentacarfront.dto.save.TouristSaveDTO;
-import cu.edu.cujae.rentacarfront.services.CountryService;
-import cu.edu.cujae.rentacarfront.services.GenderService;
 import cu.edu.cujae.rentacarfront.services.TouristService;
 import cu.edu.cujae.rentacarfront.utils.AggregateService;
+import cu.edu.cujae.rentacarfront.utils.TouristGender;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 @Route("tourist")
 @PageTitle("Turista | Rider Rent a Car")
 public class TouristView extends EntityView<TouristDTO, TouristSaveDTO> {
     private final TouristService touristService;
-    private final CountryService countryService;
-    private final GenderService genderService;
     private TextField name;
     private TextField passport;
     private EmailField email;
     private IntegerField age;
     private TextField phone;
-    private ComboBox<CountryDTO> country;
-    private ComboBox<GenderDTO> gender;
+    private TextField country;
+    private ComboBox<TouristGender> gender;
     public TouristView(AggregateService aggregateService) {
         super(aggregateService);
         this.touristService = aggregateService.getTouristService();
-        this.countryService = aggregateService.getCountryService();
-        this.genderService = aggregateService.getGenderService();
         this.binder = new Binder<>(TouristDTO.class);
         this.selectedItem = new TouristDTO();
         configureUI();
@@ -83,10 +78,10 @@ public class TouristView extends EntityView<TouristDTO, TouristSaveDTO> {
         grid.addColumn(TouristDTO::getPhone)
                 .setHeader(getTranslation("tourist.phone"))
                 .setSortable(true);
-        grid.addColumn(tourist -> tourist.getCountry().getName())
+        grid.addColumn(TouristDTO::getCountry)
                 .setHeader(getTranslation("tourist.country"))
                 .setSortable(true);
-        grid.addColumn(tourist -> tourist.getGender().getName())
+        grid.addColumn(TouristDTO::getGender)
                 .setHeader(getTranslation("tourist.gender"))
                 .setSortable(true);
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
@@ -154,13 +149,13 @@ public class TouristView extends EntityView<TouristDTO, TouristSaveDTO> {
                 .bind(TouristDTO::getPhone, TouristDTO::setPhone);
         // Validación para el campo 'gender'
         binder.forField(gender)
-                .withValidator(genderValue -> genderValue != null,
+                .withValidator(Objects::nonNull,
                         "Debe seleccionar un género")
                 .bind(TouristDTO::getGender, TouristDTO::setGender);
 
         // Validación para el campo 'country'
         binder.forField(country)
-                .withValidator(countryValue -> countryValue != null,
+                .withValidator(Objects::nonNull,
                         "Debe seleccionar un país")
                 .bind(TouristDTO::getCountry, TouristDTO::setCountry);
 
@@ -178,8 +173,9 @@ public class TouristView extends EntityView<TouristDTO, TouristSaveDTO> {
         age = createIntegerField("Edad");
         email = createEmailField("Email");
         phone = createTextField("Telefono");
-        country = createComboBox("País", countryService);
-        gender = createComboBox("Género", genderService);
+        country = createTextField("País");
+        gender = new ComboBox<TouristGender>("Genero");
+        gender.setItems(TouristGender.values());
         formLayout.add(name, passport, email, phone, age, country, gender);
         return formLayout;
     }
@@ -239,8 +235,8 @@ public class TouristView extends EntityView<TouristDTO, TouristSaveDTO> {
         save.setEmail(dto.getEmail());
         save.setPassport(dto.getPassport());
         save.setPhone(dto.getPhone());
-        save.setCountryId(dto.getCountry().getId());
-        save.setGenderId(dto.getGender().getId());
+        save.setCountry(dto.getCountry());
+        save.setGender(dto.getGender());
     }
 
     @Override

@@ -160,9 +160,8 @@ public abstract class EntityView<T, U> extends VerticalLayout {
         setAddButton();
         deleteButton.addClickListener(click -> onDeleteButtonClick());
     }
-    protected <U extends NamedEntity> ComboBox<U> createComboBox(String label, BaseService<U, ?> service) {
+    protected <U extends NamedEntity> ComboBox<U> createComboBox(String label) {
         ComboBox<U> comboBox = new ComboBox<>(label);
-        comboBox.setItems(service.getAll());
         comboBox.setItemLabelGenerator(U::getName);
         comboBox.setAllowCustomValue(false);
         return comboBox;

@@ -1,5 +1,6 @@
 package cu.edu.cujae.rentacarfront.dto.save;
 
+import cu.edu.cujae.rentacarfront.utils.TouristGender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,6 @@ public class TouristSaveDTO {
     private Integer age;
     private String phone;
     private String email;
-    private Integer genderId;
-    private Integer countryId;
+    private TouristGender gender;
+    private String country;
 }

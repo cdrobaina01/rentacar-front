@@ -13,12 +13,8 @@ import com.vaadin.flow.data.validator.EmailValidator;
 import com.vaadin.flow.data.validator.StringLengthValidator;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import cu.edu.cujae.rentacarfront.dto.CategoryDTO;
 import cu.edu.cujae.rentacarfront.dto.DriverDTO;
-import cu.edu.cujae.rentacarfront.dto.TouristDTO;
 import cu.edu.cujae.rentacarfront.dto.save.DriverSaveDTO;
-import cu.edu.cujae.rentacarfront.dto.save.TouristSaveDTO;
-import cu.edu.cujae.rentacarfront.services.CategoryService;
 import cu.edu.cujae.rentacarfront.services.DriverService;
 import cu.edu.cujae.rentacarfront.utils.AggregateService;
 import org.springframework.http.HttpStatus;
@@ -26,6 +22,7 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
+/*
 @Route("driver")
 @PageTitle("Conductor| Rider Rent a Car")
 public class DriverView extends EntityView<DriverDTO, DriverSaveDTO> {
@@ -276,4 +273,6 @@ public class DriverView extends EntityView<DriverDTO, DriverSaveDTO> {
                     .bind(DriverDTO::getCategory, DriverDTO::setCategory);
         }
     }
+
+ */
 
