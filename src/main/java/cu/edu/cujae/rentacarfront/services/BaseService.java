@@ -7,6 +7,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.ParameterizedType;
@@ -32,14 +33,12 @@ public abstract class BaseService<T, S> {
     }
 
     public List<T> getAll() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + obtenerCookie("jwt"));
-        System.out.println(headers);
-        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + getCookie("jwt"));
+            HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
 
-        ResponseEntity<T[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, arrayClass);
-        System.out.println("BaseService.getAll - responseEntity: " + responseEntity);
-        return List.of(responseEntity.getBody());
+            ResponseEntity<T[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, arrayClass);
+            return List.of(responseEntity.getBody());
     }
 
     public T getOne(String id) {
@@ -74,13 +73,13 @@ public abstract class BaseService<T, S> {
 
         restTemplate.exchange(apiUrl, HttpMethod.POST, entity, saveClass);
     }
-    public String obtenerCookie(String nombreCookie) {
+    public String getCookie(String cookieName) {
         // Obtener todas las cookies
         Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
 
         // Buscar la cookie deseada
         for (Cookie cookie : cookies) {
-            if (nombreCookie.equals(cookie.getName())) {
+            if (cookieName.equals(cookie.getName())) {
                 return cookie.getValue();
             }
         }

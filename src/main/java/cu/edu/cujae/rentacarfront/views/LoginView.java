@@ -23,8 +23,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     private final LoginForm login = new LoginForm();
 
     public LoginView(AggregateService aggregateService) {
-        System.out.println("Levante login");
-
         this.aggregateService = aggregateService;
         authService = aggregateService.getAuthService();
         addClassName("login-view");

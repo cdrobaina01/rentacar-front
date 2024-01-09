@@ -26,17 +26,13 @@ public class AuthService extends BaseService<LoginRequestDTO, LoginResponseDTO> 
 
     public void login(String username, String password) {
         LoginRequestDTO loginRequest = new LoginRequestDTO(username, password);
-        System.out.println("AuthService.login - loginRequest creado: " + loginRequest);
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<LoginRequestDTO> entity = new HttpEntity<>(loginRequest, headers);
-        System.out.println("AuthService.login - entity creado: " + entity);
 
         ResponseEntity<LoginResponseDTO> responseEntity = restTemplate.exchange(apiUrl + "/auth/login", HttpMethod.POST, entity, LoginResponseDTO.class);
-        System.out.println("AuthService.login - responseEntity obtenido: " + responseEntity);
 
         String jwt = responseEntity.getBody().getToken();
-        System.out.println(jwt);
 
         Cookie jwtCookie = new Cookie("jwt", jwt);
         jwtCookie.setHttpOnly(true);
@@ -47,7 +43,6 @@ public class AuthService extends BaseService<LoginRequestDTO, LoginResponseDTO> 
 
 
         setJwtToken(jwt);
-        System.out.println("AuthService.login - jwt almacenado en BaseService");
         TokenData token = new TokenData();
         token.setToken(jwt);
 

@@ -19,9 +19,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.theme.lumo.LumoIcon;
-import cu.edu.cujae.rentacarfront.dto.TouristDTO;
-import cu.edu.cujae.rentacarfront.dto.save.TouristSaveDTO;
-import cu.edu.cujae.rentacarfront.services.BaseService;
 import cu.edu.cujae.rentacarfront.utils.AggregateService;
 import cu.edu.cujae.rentacarfront.utils.NamedEntity;
 
@@ -153,6 +150,7 @@ public abstract class EntityView<T, U> extends VerticalLayout {
         setDataGrid();
         configureGridListener();
     }
+
     protected void createButtEditorLayout(Div editorLayout){
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.add(addButton, deleteButton);

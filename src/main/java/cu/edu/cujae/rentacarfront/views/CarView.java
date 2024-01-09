@@ -251,16 +251,12 @@ public class CarView extends EntityView<CarDTO, CarSaveDTO>{
 
     @Override
     protected void fillSaveDTO(CarDTO dto, CarSaveDTO save) {
-        System.out.println("Antes de llenar save - DTO: " + dto + ", SAVE: " + save);
-
         save.setPlate(dto.getPlate());
         save.setKm(dto.getKm());
         save.setColor(dto.getColor());
         save.setModelId(dto.getModel().getId());
         save.setKm(dto.getKm());
         save.setSituationId(dto.getSituation().ordinal());
-        System.out.println("Despues de llenar save - DTO: " + dto + ", SAVE: " + save);
-
     }
 
     @Override
