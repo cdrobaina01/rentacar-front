@@ -30,9 +30,11 @@ public abstract class BaseService<T, S> {
     public List<T> getAll() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + jwtToken);
+        System.out.println("BaseService.getAll - jwtToken: " + jwtToken);
         HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
 
         ResponseEntity<T[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, arrayClass);
+        System.out.println("BaseService.getAll - responseEntity: " + responseEntity);
         return List.of(responseEntity.getBody());
     }
 

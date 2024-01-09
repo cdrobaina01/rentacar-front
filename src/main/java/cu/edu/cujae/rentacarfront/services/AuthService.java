@@ -1,4 +1,5 @@
 package cu.edu.cujae.rentacarfront.services;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinService;
 import cu.edu.cujae.rentacarfront.dto.LoginRequestDTO;
 import cu.edu.cujae.rentacarfront.dto.LoginResponseDTO;
@@ -10,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
 @Service
 public class AuthService extends BaseService<LoginRequestDTO, LoginResponseDTO> {
     public AuthService(RestTemplate restTemplate) {
@@ -29,15 +33,20 @@ public class AuthService extends BaseService<LoginRequestDTO, LoginResponseDTO> 
         System.out.println("AuthService.login - responseEntity obtenido: " + responseEntity);
 
         String jwt = responseEntity.getBody().getToken();
-        System.out.println("AuthService.login - jwt obtenido: " + jwt);
 
         Cookie jwtCookie = new Cookie("jwt", jwt);
         jwtCookie.setHttpOnly(true);
+        jwtCookie.setPath("/"); // Asegúrate de que la cookie está disponible en todo el sitio
+        jwtCookie.setMaxAge(7 * 24 * 60 * 60); // Establece la duración de la cookie, por ejemplo, una semana
 
         ((HttpServletResponse) VaadinService.getCurrentResponse()).addCookie(jwtCookie);
-        System.out.println("AuthService.login - jwtCookie añadido");
+
 
         setJwtToken(jwt);
         System.out.println("AuthService.login - jwt almacenado en BaseService");
+
+        // Redirige al usuario a la vista 'tourist'
+        UI.getCurrent().navigate("tourist");
     }
+
 }
